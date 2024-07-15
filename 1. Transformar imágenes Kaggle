@@ -17,7 +17,7 @@ def convert_images_to_16bit_grayscale(input_path, output_path):
             img_16bit_pil.save(tiff_file_path, format='TIFF')
 
 # Rutas de las imágenes
-source_images_path = 'C:/Users/Diego/Desktop/Proyecto de Grado/imagenes/mascaras'
+source_images_path = 'C:/Users/Diego/Desktop/Proyecto de Grado/imagenes/imagenes'
 destination_images_path = 'C:/tesis/imagenes/mascaras'
 os.makedirs(destination_images_path, exist_ok=True)
 convert_images_to_16bit_grayscale(source_images_path, destination_images_path)
