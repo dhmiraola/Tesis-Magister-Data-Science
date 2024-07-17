@@ -1,0 +1,88 @@
+# Este es un ejemplo de las Series de Tiempo utilizando la carpeta "C1"
+# Función para Elaborar las Series de Tiempo
+def procesar_neurona(nombre_neurona, target_shape):
+    ruta_neurona = os.path.join(ruta_carpeta_neuronas, nombre_neurona)
+    neurona = cv2.imread(ruta_neurona, cv2.IMREAD_GRAYSCALE)
+    if neurona is None:
+        print(f"Error al cargar la imagen")
+        return None
+
+    if neurona.shape != target_shape:
+        neurona = cv2.resize(neurona, target_shape[::-1], interpolation=cv2.INTER_NEAREST)
+
+    promedios = []
+
+    for nombre_mascara in mascaras:
+        ruta_mascara = os.path.join(ruta_carpeta_mascaras, nombre_mascara)
+        mascara = cv2.imread(ruta_mascara, cv2.IMREAD_GRAYSCALE)
+        if mascara is not None:
+            if mascara.shape != target_shape:
+                mascara = cv2.resize(mascara, target_shape[::-1], interpolation=cv2.INTER_NEAREST)
+            
+            resultado = np.multiply(neurona, mascara)
+            promedio = np.mean(resultado)
+            promedios.append(promedio)
+        else:
+            print(f"Error al cargar la máscara")
+
+    return promedios
+
+def obtener_neuronas_comunes(mascaras, neuronas):
+    neuronas_comunes = set(neuronas)
+    target_shape = None
+    for nombre_mascara in mascaras:
+        ruta_mascara = os.path.join(ruta_carpeta_mascaras, nombre_mascara)
+        mascara = cv2.imread(ruta_mascara, cv2.IMREAD_GRAYSCALE)
+        if mascara is not None:
+            if target_shape is None:
+                target_shape = mascara.shape
+            neuronas_presentes = set()
+            for nombre_neurona in neuronas:
+                ruta_neurona = os.path.join(ruta_carpeta_neuronas, nombre_neurona)
+                neurona = cv2.imread(ruta_neurona, cv2.IMREAD_GRAYSCALE)
+                if neurona is not None:
+                    if neurona.shape != target_shape:
+                        neurona = cv2.resize(neurona, target_shape[::-1], interpolation=cv2.INTER_NEAREST)
+                    if np.any(np.multiply(neurona, mascara)):
+                        neuronas_presentes.add(nombre_neurona)
+            neuronas_comunes.intersection_update(neuronas_presentes)
+        else:
+            print(f"Error al cargar la máscara {nombre_mascara}")
+    return list(neuronas_comunes), target_shape
+
+# Rutas de las carpetas
+ruta_carpeta_neuronas = r"C:\cecs\mascaras\unet92\neuronas_separadas\separadasc1"
+ruta_carpeta_mascaras = r"C:\cecs\mascaras\unet92\mascarasc1"
+
+mascaras = [f for f in os.listdir(ruta_carpeta_mascaras) if f.endswith('.png')]
+neuronas = [f for f in os.listdir(ruta_carpeta_neuronas) if f.endswith('.png')]
+
+# Obtener neuronas que están presentes en todas las máscaras y el tamaño objetivo
+neuronas_comunes, target_shape = obtener_neuronas_comunes(mascaras, neuronas)
+
+# Crear subplots 
+filas = int(np.ceil(len(neuronas_comunes) / 3))
+fig = make_subplots(rows=filas, cols=3, subplot_titles=neuronas_comunes)
+
+# Procesar cada neurona común y almacenar las series de tiempo
+series_de_tiempo = []
+for i, nombre_neurona in enumerate(neuronas_comunes):
+    promedios = procesar_neurona(nombre_neurona, target_shape)
+    if promedios is not None:
+        series_de_tiempo.append(promedios)
+        # Aplicando LOWESS y añadiendo al gráfico
+        fraccion = 0.1
+        promedios_suavizados = lowess(promedios, np.arange(len(promedios)), frac=fraccion)[:, 1]
+        segundos_por_indice = 5
+        indices = list(range(len(promedios_suavizados)))
+        segundos = [indice * segundos_por_indice for indice in indices]
+        fila = i // 3 + 1
+        columna = i % 3 + 1
+        fig.add_trace(go.Scatter(x=segundos, y=promedios_suavizados, mode='lines+markers', name=f'{nombre_neurona}'),
+                      row=fila, col=columna)
+
+fig.update_layout(title='Series de Tiempo Experimento C1',
+                  height=filas * 300,
+                  showlegend=False)
+
+fig.show()
