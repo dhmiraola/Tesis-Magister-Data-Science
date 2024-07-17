@@ -12,7 +12,7 @@ scaler = StandardScaler()
 X_scaled = scaler.fit_transform(X)
 
 # Número óptimo de clústeres determinado a partir del método del codo
-optimal_k = 3  # Ajusta esto según el resultado del método del codo
+optimal_k = 3  
 
 # Aplicar KMeans con el número óptimo de clústeres
 3 Ejemplo de codigo utilizado para cluster k-means
