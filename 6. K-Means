@@ -1,0 +1,56 @@
+import plotly.express as px
+import pandas as pd
+from sklearn.decomposition import PCA
+from sklearn.cluster import KMeans
+from sklearn.preprocessing import StandardScaler
+
+# Convertir las series de tiempo a un array de numpy
+X = np.array(series_de_tiempo)
+
+# Escalar los datos
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+# Número óptimo de clústeres determinado a partir del método del codo
+optimal_k = 3  
+
+# Aplicar KMeans con el número óptimo de clústeres
+3 Ejemplo de codigo utilizado para cluster k-means
+
+kmeans = KMeans(n_clusters=optimal_k, random_state=42)
+clusters = kmeans.fit_predict(X_scaled)
+
+# Reducir la dimensionalidado usando PCA
+pca = PCA(n_components=2)
+X_pca = pca.fit_transform(X_scaled)
+
+
+neuronas_comunes_solo_numeros = [nombre.split('_')[1].split('.')[0] for nombre in neuronas_comunes]
+
+# Crear un DataFrame para plotly
+df = pd.DataFrame(X_pca, columns=['Componente Principal 1', 'Componente Principal 2'])
+df['Clúster'] = clusters
+df['Neurona'] = neuronas_comunes_solo_numeros
+
+# Graficar los clústeres en el espacio 2D con Plotly
+fig = px.scatter(df, x='Componente Principal 1', y='Componente Principal 2', color=df['Clúster'].astype(str),
+                 hover_data={'Neurona': True, 'Clúster': True}, title='Visualización de Clústeres con PCA Experimento C1', size=[10]*len(df))
+
+# Añadir texto para mostrar los números de las neuronas
+for i, row in df.iterrows():
+    fig.add_annotation(x=row['Componente Principal 1'], y=row['Componente Principal 2'],
+                       text=row['Neurona'], showarrow=False, font=dict(size=10))
+
+# Personalizar el diseño del gráfico
+fig.update_traces(marker=dict(size=18), selector=dict(mode='markers'))
+fig.update_layout(
+    title='Visualización de Clústeres Experimento C1.2',
+    xaxis_title='Componente Principal 1',
+    yaxis_title='Componente Principal 2',
+    legend_title='Clúster',
+    template='plotly_white',
+    height=500,
+    width=700
+)
+
+fig.show()
