@@ -20,7 +20,7 @@ optimal_k = 3  # Ajusta esto según el resultado del método del codo
 kmeans = KMeans(n_clusters=optimal_k, random_state=42)
 clusters = kmeans.fit_predict(X_scaled)
 
-# Reducir la dimensionalidad a 2D usando PCA
+# Reducir la dimensionalidado usando PCA
 pca = PCA(n_components=2)
 X_pca = pca.fit_transform(X_scaled)
 
